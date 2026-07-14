@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Edit, Trash2 } from 'lucide-react';
+import { Search, Eye, Edit, Trash2, Loader2 } from 'lucide-react';
 import { Invoice } from '@/types/invoice';
 import { InvoiceStorage } from '@/lib/invoiceStorage';
+import { formatInvoiceNo } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 interface InvoiceListProps {
@@ -18,6 +19,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
   }, [searchQuery, invoices]);
 
   const loadInvoices = async () => {
+    setLoading(true);
     try {
       const allInvoices = await InvoiceStorage.getAll();
       // Sort by invoice number descending (newest first)
@@ -44,6 +47,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
         description: "Failed to load invoices",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,7 +119,12 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
             </div>
           </div>
 
-          {filteredInvoices.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <Loader2 className="w-8 h-8 animate-spin text-invoice-blue mb-3" />
+              <p>Loading invoices...</p>
+            </div>
+          ) : filteredInvoices.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {searchQuery ? 'No invoices found matching your search.' : 'No invoices created yet.'}
             </div>
@@ -127,7 +137,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
                       <div className="flex-1">
                         <div className="flex items-center gap-4 mb-2">
                           <h3 className="font-semibold text-invoice-text">
-                            Invoice #{invoice.invoiceNo}
+                            Invoice #{formatInvoiceNo(invoice.invoiceNo)}
                           </h3>
                           <Badge variant="secondary" className="bg-invoice-blue-light text-invoice-blue">
                             {invoice.terms}

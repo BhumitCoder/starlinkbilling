@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Printer, Download } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import { getPaymentSettings } from '@/lib/settingsStorage';
+import { formatInvoiceNo } from '@/lib/utils';
 
 interface InvoicePreviewProps {
   invoice: Invoice;
@@ -43,7 +44,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
 
       const options = {
         margin: 0.3,
-        filename: `Invoice-${invoice.invoiceNo}.pdf`,
+        filename: `Invoice-${formatInvoiceNo(invoice.invoiceNo)}.pdf`,
         image: {
           type: 'jpeg',
           quality: 0.95
@@ -93,16 +94,12 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
       <div className="invoice-content border border-invoice-border" style={{ padding: '20px' }}>
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <img
-              src="/lovable-uploads/9458b363-f879-4ae4-82ed-e8d12ded6ee3.png"
-              alt="Starlink Jewels Logo"
-              className="h-20 w-auto"
+              src="/lovable-uploads/starlink-logo.png"
+              alt="Starlink Jewels"
+              className="h-16 w-auto"
             />
-            <div>
-              <h1 className="text-2xl font-bold text-invoice-blue font-playfair">STARLINK JEWELS INC</h1>
-              <p className="text-xs text-invoice-text mt-1">WWW.STARLINKJEWELS.COM</p>
-            </div>
           </div>
           <div className="text-right">
             <div className="text-xs text-invoice-text leading-relaxed">
@@ -139,7 +136,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
             <div className="space-y-1 text-xs">
               <div className="flex justify-between">
                 <span className="font-semibold">Invoice No:</span>
-                <span>{invoice.invoiceNo}</span>
+                <span>{formatInvoiceNo(invoice.invoiceNo)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold">Date:</span>
@@ -236,6 +233,12 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
 
         {/* Footer */}
         <div className="flex justify-between items-end mt-6 gap-4">
+          <div>
+            <p className="text-xs text-invoice-text mb-1">Buyers Confirmation.</p>
+            <div className="border-t border-invoice-border w-32 mt-4">
+              <p className="text-xs text-invoice-text mt-1">Chop or signature.</p>
+            </div>
+          </div>
           {qrImage && (
             <div className="text-center">
               <div className="border border-invoice-border p-2 inline-block">
@@ -253,12 +256,6 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
               )}
             </div>
           )}
-          <div>
-            <p className="text-xs text-invoice-text mb-1">Buyers Confirmation.</p>
-            <div className="border-t border-invoice-border w-32 mt-4">
-              <p className="text-xs text-invoice-text mt-1">Chop or signature.</p>
-            </div>
-          </div>
           <div className="text-center">
             <p className="text-xs text-invoice-text mb-1">For STARLINK JEWELS INC</p>
             <img

@@ -10,6 +10,7 @@ import { InvoicePreview } from '@/components/InvoicePreview';
 import { PaymentQRSettings } from '@/components/PaymentQRSettings';
 import { Invoice, InvoiceFormData } from '@/types/invoice';
 import { logout } from '@/lib/auth';
+import { formatInvoiceNo } from '@/lib/utils';
 
 export const BillingSystem: React.FC = () => {
   const navigate = useNavigate();
@@ -73,19 +74,13 @@ export const BillingSystem: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img 
-                src="/lovable-uploads/9458b363-f879-4ae4-82ed-e8d12ded6ee3.png" 
-                alt="Starlink Jewels Logo" 
-                className="h-12 w-auto"
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-invoice-blue">Starlink Jewels</h1>
-                <p className="text-muted-foreground">Billing Management System</p>
-              </div>
-            </div>
+            <img
+              src="/lovable-uploads/starlink-logo.png"
+              alt="Starlink Jewels"
+              className="h-10 w-auto"
+            />
             <div className="flex items-center gap-2">
               <Button
                 onClick={handleCreateNew}
@@ -138,7 +133,7 @@ export const BillingSystem: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-invoice-blue">
-                  {editingInvoice ? `Edit Invoice #${editingInvoice.invoiceNo}` : 'Create New Invoice'}
+                  {editingInvoice ? `Edit Invoice #${formatInvoiceNo(editingInvoice.invoiceNo)}` : 'Create New Invoice'}
                 </CardTitle>
               </CardHeader>
               <CardContent>

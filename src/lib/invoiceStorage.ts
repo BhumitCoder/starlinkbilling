@@ -111,7 +111,7 @@ export class InvoiceStorage {
 
   static async getNextInvoiceNumber(): Promise<number> {
     const invoices = await this.getAll();
-    if (invoices.length === 0) return 2636;
+    if (invoices.length === 0) return 1;
     const maxInvoiceNo = Math.max(...invoices.map((inv) => inv.invoiceNo));
     return maxInvoiceNo + 1;
   }
