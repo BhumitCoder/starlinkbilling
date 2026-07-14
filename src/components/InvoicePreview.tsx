@@ -234,7 +234,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
         {/* Footer */}
         <div className="flex justify-between items-end mt-6 gap-4">
           <div>
-            <p className="text-xs text-invoice-text mb-1">Buyers Confirmation.</p>
+            {/* <p className="text-xs text-invoice-text mb-1">Buyers Confirmation.</p> */}
             <div className="border-t border-invoice-border w-32 mt-4">
               <p className="text-xs text-invoice-text mt-1">Chop or signature.</p>
             </div>
