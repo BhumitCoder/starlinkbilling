@@ -298,7 +298,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, initialData,
               />
             </div>
             <div>
-              <Label htmlFor="advancePayment">Advance Payment ($)</Label>
+              <Label htmlFor="advancePayment">Deposit Payment ($)</Label>
               <Input
                 id="advancePayment"
                 type="number"

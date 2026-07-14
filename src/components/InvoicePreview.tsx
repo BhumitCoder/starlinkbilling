@@ -219,7 +219,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
                 <>
                   <tr className="border-b border-invoice-border">
                     <td className="border border-invoice-border p-1.5 text-xs" colSpan={6}>
-                      <div className="text-right font-semibold">Advance Payment</div>
+                      <div className="text-right font-semibold">Deposit Payment</div>
                     </td>
                     <td className="border border-invoice-border p-1.5 text-center font-semibold text-xs">{invoice.advancePayment}$</td>
                   </tr>
