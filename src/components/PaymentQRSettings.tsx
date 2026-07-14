@@ -117,8 +117,24 @@ export const PaymentQRSettings: React.FC = () => {
     }
   };
 
-  const handleRemove = () => {
-    setQrImage('');
+  const handleRemove = async () => {
+    setSaving(true);
+    try {
+      await savePaymentSettings({ qrImage: '', note });
+      setQrImage('');
+      toast({
+        title: 'Removed',
+        description: 'Payment QR removed. It will no longer appear on invoices.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove payment QR',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -185,6 +201,7 @@ export const PaymentQRSettings: React.FC = () => {
                   type="button"
                   variant="outline"
                   onClick={handleRemove}
+                  disabled={saving || loading}
                   className="border-destructive text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />

@@ -3,7 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LogIn } from 'lucide-react';
 import { login, isAuthenticated } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -40,16 +40,13 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-md border-invoice-border">
-        <CardHeader className="text-center space-y-4">
+        <CardHeader className="text-center space-y-3">
           <img
-            src="/favicon.png"
-            alt="Starlink Jewels Logo"
-            className="h-16 w-16 mx-auto"
+            src="/lovable-uploads/starlink-logo.png"
+            alt="Starlink Jewels"
+            className="h-12 w-auto mx-auto"
           />
-          <div>
-            <CardTitle className="text-2xl text-invoice-blue">Starlink Jewels</CardTitle>
-            <p className="text-muted-foreground text-sm mt-1">Billing Management System</p>
-          </div>
+          <p className="text-muted-foreground text-sm">Billing Management System</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
