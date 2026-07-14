@@ -20,6 +20,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,6 +68,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
 
   const handleDelete = async (invoice: Invoice) => {
     if (window.confirm(`Are you sure you want to delete Invoice #${invoice.invoiceNo}?`)) {
+      setDeletingId(invoice.id);
       try {
         const success = await InvoiceStorage.delete(invoice.id);
         if (success) {
@@ -88,6 +90,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
           description: "Failed to delete invoice",
           variant: "destructive",
         });
+      } finally {
+        setDeletingId(null);
       }
     }
   };
@@ -181,9 +185,12 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ onEdit, onView, refres
                           size="sm"
                           variant="outline"
                           onClick={() => handleDelete(invoice)}
+                          disabled={deletingId === invoice.id}
                           className="border-destructive text-destructive hover:bg-destructive/10"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {deletingId === invoice.id
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <Trash2 className="w-4 h-4" />}
                         </Button>
                       </div>
                     </div>

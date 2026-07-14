@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { InvoiceFormData, InvoiceItem } from '@/types/invoice';
 import { InvoiceStorage } from '@/lib/invoiceStorage';
 import { useToast } from '@/hooks/use-toast';
@@ -74,9 +74,11 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, initialData,
     return calculateTotal() - (formData.advancePayment || 0);
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setSubmitting(true);
     try {
       if (editId) {
         await InvoiceStorage.update(editId, formData);
@@ -98,6 +100,8 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, initialData,
         description: "Failed to save invoice",
         variant: "destructive",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -329,8 +333,9 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, initialData,
       </Card>
 
       <div className="flex gap-4">
-        <Button type="submit" className="bg-invoice-blue hover:bg-invoice-blue/90">
-          {editId ? 'Update Invoice' : 'Create Invoice'}
+        <Button type="submit" disabled={submitting} className="bg-invoice-blue hover:bg-invoice-blue/90">
+          {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {submitting ? (editId ? 'Updating...' : 'Creating...') : (editId ? 'Update Invoice' : 'Create Invoice')}
         </Button>
       </div>
     </form>

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Invoice } from '@/types/invoice';
 import { Button } from '@/components/ui/button';
-import { Printer, Download } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
+import { Printer, Download, Loader2 } from 'lucide-react';
 import { getPaymentSettings } from '@/lib/settingsStorage';
 import { formatInvoiceNo } from '@/lib/utils';
 
@@ -15,6 +14,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
   const [qrNote, setQrNote] = useState('');
   const [qrImage2, setQrImage2] = useState('');
   const [qrNote2, setQrNote2] = useState('');
+  const [downloading, setDownloading] = useState(false);
+  const [printing, setPrinting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -34,43 +35,64 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
     };
   }, []);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
+    setPrinting(true);
+    // Small delay so the spinner renders before the print dialog blocks the thread
+    await new Promise((r) => setTimeout(r, 100));
     window.print();
+    setPrinting(false);
   };
 
   const handleDownloadPDF = async () => {
+    setDownloading(true);
     try {
       const element = document.querySelector('.invoice-content') as HTMLElement;
-      if (!element) {
-        console.error('Invoice content element not found');
-        return;
+      if (!element) throw new Error('Invoice content element not found');
+
+      // Dynamically import so the heavy libs are only loaded on demand
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
+      // A4 at 300 DPI = 2480 × 3508 px — we render at native width × scale 5
+      // which typically lands well above 300 DPI for clean, crisp output.
+      const canvas = await html2canvas(element, {
+        scale: 5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        // Render at the element's full scroll width so nothing is clipped
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/png'); // lossless — no JPEG blur
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height / canvas.width) * imgW;
+
+      // If the invoice is taller than one page, split across pages
+      let yOffset = 0;
+      let remaining = imgH;
+      while (remaining > 0) {
+        pdf.addImage(imgData, 'PNG', 0, yOffset === 0 ? 0 : -(imgH - remaining), imgW, imgH);
+        remaining -= pageH;
+        if (remaining > 0) {
+          pdf.addPage();
+          yOffset += pageH;
+        }
       }
 
-      const options = {
-        margin: 0.3,
-        filename: `Invoice-${formatInvoiceNo(invoice.invoiceNo)}.pdf`,
-        image: {
-          type: 'jpeg',
-          quality: 0.95
-        },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          allowTaint: false,
-          backgroundColor: '#ffffff'
-        },
-        jsPDF: {
-          unit: 'in',
-          format: 'a4',
-          orientation: 'portrait'
-        }
-      };
-
-      await html2pdf().set(options).from(element).save();
+      pdf.save(`Invoice-${formatInvoiceNo(invoice.invoiceNo)}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -85,13 +107,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
   return (
     <div className="max-w-4xl mx-auto bg-white">
       <div className="mb-4 print:hidden flex gap-2">
-        <Button onClick={handlePrint} className="bg-invoice-blue hover:bg-invoice-blue/90">
-          <Printer className="w-4 h-4 mr-2" />
-          Print Invoice
+        <Button onClick={handlePrint} disabled={printing || downloading} className="bg-invoice-blue hover:bg-invoice-blue/90">
+          {printing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Printer className="w-4 h-4 mr-2" />}
+          {printing ? 'Preparing...' : 'Print Invoice'}
         </Button>
-        <Button onClick={handleDownloadPDF} variant="outline" className="border-invoice-blue text-invoice-blue hover:bg-invoice-blue hover:text-white">
-          <Download className="w-4 h-4 mr-2" />
-          Download PDF
+        <Button onClick={handleDownloadPDF} disabled={downloading || printing} variant="outline" className="border-invoice-blue text-invoice-blue hover:bg-invoice-blue hover:text-white">
+          {downloading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+          {downloading ? 'Generating PDF...' : 'Download PDF'}
         </Button>
       </div>
 
