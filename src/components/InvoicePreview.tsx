@@ -13,6 +13,8 @@ interface InvoicePreviewProps {
 export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
   const [qrImage, setQrImage] = useState('');
   const [qrNote, setQrNote] = useState('');
+  const [qrImage2, setQrImage2] = useState('');
+  const [qrNote2, setQrNote2] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -21,6 +23,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
         if (!active) return;
         setQrImage(settings.qrImage);
         setQrNote(settings.note);
+        setQrImage2(settings.qrImage2);
+        setQrNote2(settings.note2);
       })
       .catch(() => {
         // Non-fatal: invoice still renders without the payment QR
@@ -239,20 +243,41 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
               <p className="text-xs text-invoice-text mt-1">Chop or signature.</p>
             </div>
           </div>
-          {qrImage && (
-            <div className="text-center">
-              <div className="border border-invoice-border p-2 inline-block">
-                <p className="text-xs font-semibold text-invoice-text mb-1">SCAN TO PAY</p>
-                <img
-                  src={qrImage}
-                  alt="Payment QR"
-                  className="h-24 w-24 mx-auto object-contain"
-                />
-              </div>
-              {qrNote && (
-                <p className="text-[10px] text-invoice-text mt-1 max-w-[130px] mx-auto whitespace-pre-line">
-                  {qrNote}
-                </p>
+          {(qrImage || qrImage2) && (
+            <div className="flex gap-3 items-start">
+              {qrImage && (
+                <div className="text-center">
+                  <div className="border border-invoice-border p-2 inline-block">
+                    <p className="text-xs font-semibold text-invoice-text mb-1">SCAN TO PAY</p>
+                    <img
+                      src={qrImage}
+                      alt="Payment QR 1"
+                      className="h-24 w-24 mx-auto object-contain"
+                    />
+                  </div>
+                  {qrNote && (
+                    <p className="text-[10px] text-invoice-text mt-1 max-w-[100px] mx-auto whitespace-pre-line">
+                      {qrNote}
+                    </p>
+                  )}
+                </div>
+              )}
+              {qrImage2 && (
+                <div className="text-center">
+                  <div className="border border-invoice-border p-2 inline-block">
+                    <p className="text-xs font-semibold text-invoice-text mb-1">SCAN TO PAY</p>
+                    <img
+                      src={qrImage2}
+                      alt="Payment QR 2"
+                      className="h-24 w-24 mx-auto object-contain"
+                    />
+                  </div>
+                  {qrNote2 && (
+                    <p className="text-[10px] text-invoice-text mt-1 max-w-[100px] mx-auto whitespace-pre-line">
+                      {qrNote2}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )}

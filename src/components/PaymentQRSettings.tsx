@@ -40,32 +40,32 @@ const fileToResizedDataUrl = (file: File, maxSize = 600): Promise<string> => {
   });
 };
 
-export const PaymentQRSettings: React.FC = () => {
+interface QRSlotProps {
+  label: string;
+  qrImage: string;
+  note: string;
+  saving: boolean;
+  loading: boolean;
+  onImageChange: (dataUrl: string) => void;
+  onNoteChange: (note: string) => void;
+  onSave: () => void;
+  onRemove: () => void;
+}
+
+const QRSlot: React.FC<QRSlotProps> = ({
+  label,
+  qrImage,
+  note,
+  saving,
+  loading,
+  onImageChange,
+  onNoteChange,
+  onSave,
+  onRemove,
+}) => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [qrImage, setQrImage] = useState('');
-  const [note, setNote] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const settings = await getPaymentSettings();
-        setQrImage(settings.qrImage);
-        setNote(settings.note);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load payment settings',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [toast]);
+  const inputId = `qr-upload-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,12 +82,12 @@ export const PaymentQRSettings: React.FC = () => {
 
     try {
       const dataUrl = await fileToResizedDataUrl(file);
-      setQrImage(dataUrl);
+      onImageChange(dataUrl);
       toast({
         title: 'Image ready',
-        description: 'Click "Save Payment QR" to store it.',
+        description: `Click "Save ${label}" to store it.`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to read the selected image',
@@ -98,62 +98,18 @@ export const PaymentQRSettings: React.FC = () => {
     }
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await savePaymentSettings({ qrImage, note });
-      toast({
-        title: 'Saved',
-        description: 'Payment QR updated. It will now appear on invoices.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to save payment QR',
-        variant: 'destructive',
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleRemove = async () => {
-    setSaving(true);
-    try {
-      await savePaymentSettings({ qrImage: '', note });
-      setQrImage('');
-      toast({
-        title: 'Removed',
-        description: 'Payment QR removed. It will no longer appear on invoices.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to remove payment QR',
-        variant: 'destructive',
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-invoice-blue flex items-center gap-2">
-          <QrCode className="w-5 h-5" />
-          Payment QR Code
+    <Card className="border border-invoice-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-semibold text-invoice-blue flex items-center gap-2">
+          <QrCode className="w-4 h-4" />
+          {label}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <p className="text-sm text-muted-foreground">
-          Upload a payment QR code (UPI / bank / wallet). Once saved, it appears in the
-          "Scan to Pay" section of every invoice preview and PDF.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Uploader */}
-          <div className="space-y-4">
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Controls */}
+          <div className="space-y-3">
             <div>
               <Label>QR Image</Label>
               <input
@@ -162,7 +118,7 @@ export const PaymentQRSettings: React.FC = () => {
                 accept="image/*"
                 onChange={handleFileChange}
                 className="hidden"
-                id="qr-upload"
+                id={inputId}
               />
               <Button
                 type="button"
@@ -176,11 +132,11 @@ export const PaymentQRSettings: React.FC = () => {
             </div>
 
             <div>
-              <Label htmlFor="qr-note">Caption (optional)</Label>
+              <Label htmlFor={`${inputId}-note`}>Caption (optional)</Label>
               <Textarea
-                id="qr-note"
+                id={`${inputId}-note`}
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={(e) => onNoteChange(e.target.value)}
                 placeholder="e.g. UPI: starlink@okbank"
                 rows={3}
               />
@@ -189,18 +145,18 @@ export const PaymentQRSettings: React.FC = () => {
             <div className="flex gap-2">
               <Button
                 type="button"
-                onClick={handleSave}
+                onClick={onSave}
                 disabled={saving || loading}
                 className="bg-invoice-blue hover:bg-invoice-blue/90"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {saving ? 'Saving...' : 'Save Payment QR'}
+                {saving ? 'Saving...' : `Save ${label}`}
               </Button>
               {qrImage && (
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={handleRemove}
+                  onClick={onRemove}
                   disabled={saving || loading}
                   className="border-destructive text-destructive hover:bg-destructive/10"
                 >
@@ -214,17 +170,17 @@ export const PaymentQRSettings: React.FC = () => {
           {/* Preview */}
           <div>
             <Label>Preview (as shown on invoice)</Label>
-            <div className="mt-1 border border-invoice-border rounded-lg p-4 flex items-center justify-center min-h-[200px] bg-muted/30">
+            <div className="mt-1 border border-invoice-border rounded-lg p-4 flex items-center justify-center min-h-[180px] bg-muted/30">
               {qrImage ? (
                 <div className="text-center">
                   <p className="text-xs font-semibold text-invoice-text mb-1">SCAN TO PAY</p>
                   <img
                     src={qrImage}
-                    alt="Payment QR"
-                    className="h-32 w-32 mx-auto object-contain"
+                    alt={`Payment QR ${label}`}
+                    className="h-28 w-28 mx-auto object-contain"
                   />
                   {note && (
-                    <p className="text-[11px] text-invoice-text mt-1 max-w-[160px] mx-auto whitespace-pre-line">
+                    <p className="text-[11px] text-invoice-text mt-1 max-w-[150px] mx-auto whitespace-pre-line">
                       {note}
                     </p>
                   )}
@@ -240,5 +196,131 @@ export const PaymentQRSettings: React.FC = () => {
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+export const PaymentQRSettings: React.FC = () => {
+  const { toast } = useToast();
+
+  const [qrImage, setQrImage] = useState('');
+  const [note, setNote] = useState('');
+  const [qrImage2, setQrImage2] = useState('');
+  const [note2, setNote2] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving1, setSaving1] = useState(false);
+  const [saving2, setSaving2] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const settings = await getPaymentSettings();
+        setQrImage(settings.qrImage);
+        setNote(settings.note);
+        setQrImage2(settings.qrImage2);
+        setNote2(settings.note2);
+      } catch {
+        toast({
+          title: 'Error',
+          description: 'Failed to load payment settings',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [toast]);
+
+  const handleSave1 = async () => {
+    setSaving1(true);
+    try {
+      await savePaymentSettings({ qrImage, note, qrImage2, note2 });
+      toast({ title: 'Saved', description: 'Payment QR 1 updated. It will now appear on invoices.' });
+    } catch {
+      toast({ title: 'Error', description: 'Failed to save Payment QR 1', variant: 'destructive' });
+    } finally {
+      setSaving1(false);
+    }
+  };
+
+  const handleRemove1 = async () => {
+    setSaving1(true);
+    try {
+      await savePaymentSettings({ qrImage: '', note, qrImage2, note2 });
+      setQrImage('');
+      toast({ title: 'Removed', description: 'Payment QR 1 removed from invoices.' });
+    } catch {
+      toast({ title: 'Error', description: 'Failed to remove Payment QR 1', variant: 'destructive' });
+    } finally {
+      setSaving1(false);
+    }
+  };
+
+  const handleSave2 = async () => {
+    setSaving2(true);
+    try {
+      await savePaymentSettings({ qrImage, note, qrImage2, note2 });
+      toast({ title: 'Saved', description: 'Payment QR 2 updated. It will now appear on invoices.' });
+    } catch {
+      toast({ title: 'Error', description: 'Failed to save Payment QR 2', variant: 'destructive' });
+    } finally {
+      setSaving2(false);
+    }
+  };
+
+  const handleRemove2 = async () => {
+    setSaving2(true);
+    try {
+      await savePaymentSettings({ qrImage, note, qrImage2: '', note2 });
+      setQrImage2('');
+      toast({ title: 'Removed', description: 'Payment QR 2 removed from invoices.' });
+    } catch {
+      toast({ title: 'Error', description: 'Failed to remove Payment QR 2', variant: 'destructive' });
+    } finally {
+      setSaving2(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-invoice-blue flex items-center gap-2">
+            <QrCode className="w-5 h-5" />
+            Payment QR Codes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Upload up to <strong>2 payment QR codes</strong> (UPI / bank / wallet). Both appear
+            side-by-side in the "Scan to Pay" section of every invoice preview and PDF.
+          </p>
+        </CardContent>
+      </Card>
+
+      <QRSlot
+        label="Payment QR 1"
+        qrImage={qrImage}
+        note={note}
+        saving={saving1}
+        loading={loading}
+        onImageChange={setQrImage}
+        onNoteChange={setNote}
+        onSave={handleSave1}
+        onRemove={handleRemove1}
+      />
+
+      <QRSlot
+        label="Payment QR 2"
+        qrImage={qrImage2}
+        note={note2}
+        saving={saving2}
+        loading={loading}
+        onImageChange={setQrImage2}
+        onNoteChange={setNote2}
+        onSave={handleSave2}
+        onRemove={handleRemove2}
+      />
+    </div>
   );
 };
