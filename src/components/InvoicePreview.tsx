@@ -93,7 +93,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
 
       <div className="invoice-content border border-invoice-border" style={{ padding: '20px' }}>
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <img
               src="/lovable-uploads/starlink-logo.png"
